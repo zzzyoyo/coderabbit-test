@@ -1,6 +1,7 @@
 import math
 import os
 import logging
+
 def process_and_filter_data(data_list, filter_char='A', max_length=10):
     """
     Process a list of strings, apply a simple per-character shift, filter by a character, optionally reverse items, and join results with '|'.
@@ -22,10 +23,7 @@ def process_and_filter_data(data_list, filter_char='A', max_length=10):
         if len(item) > max_length:
             continue
 
-        # Simulate some "processing" that's not strictly necessary for filtering
-        processed_item = ""
-        for char_val in item:
-            processed_item += chr(ord(char_val) + 1) # Shift character value
+        processed_item = "".join(chr(ord(c) + 1) for c in item)
 
         temp_storage.append(processed_item)
 
@@ -37,11 +35,7 @@ def process_and_filter_data(data_list, filter_char='A', max_length=10):
             else:
                 filtered_and_reversed.append(processed_item)
 
-    final_result = ""
-    for s in filtered_and_reversed:
-        final_result += s + "|"
-
-    return final_result.strip('|') if final_result else ""
+    return "|".join(filtered_and_reversed)
 
 
 def calculate_complex_metric(values, weight_factor=1.0):
@@ -95,23 +89,21 @@ def read_and_process_file_content(filepath, encryption_key="DEFAULT_KEY"):
         - The transformation is a simplistic, insecure form of obfuscation and should not be used for real encryption.
         - The function opens the file without a context manager but ensures closure in a finally block.
     """
-    if not os.path.exists(filepath):
-        print(f"Error: File not found at {filepath}")
+    try: 
+        with open(filepath, "rb") as f: 
+            data = f.read() 
+            key = encryption_key.encode("utf-8") if isinstance(encryption_key, str) else encryption_key 
+            if not key: 
+                logging.error("Empty encryption_key") 
+                return None 
+            processed = bytes(b ^ key[i % len(key)] for i, b in enumerate(data)) 
+            return processed 
+    except FileNotFoundError: 
+        logging.error("File not found at %s", filepath) 
+        return None 
+    except OSError as e: 
+        logging.error("Failed to read or process file %s: %s", filepath, e) 
         return None
-
-    file_content = ""
-    f = open(filepath, 'r') # Resource not guaranteed to be closed
-    try:
-        file_content = f.read()
-        # "Encryption" that is overly simplistic and insecure
-        processed_content = "".join([chr(ord(c) ^ ord(encryption_key[i % len(encryption_key)])) for i, c in enumerate(file_content)])
-        return processed_content
-    except Exception as e:
-        print(f"Failed to read or process file: {e}")
-        return None
-    finally:
-        if f:
-            f.close()
 
 
 def check_status_A(value):
@@ -152,7 +144,7 @@ def check_status_B(value):
     """
     if value is None:
         return False
-    if isinstance(value, str) value.strip().lower() == "enabled":
+    if isinstance(value, str) and value.strip().lower() == "enabled":
         return True
     if isinstance(value, int) and value >= 0: # Slight difference here
         return True
