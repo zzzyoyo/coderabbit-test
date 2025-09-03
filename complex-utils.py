@@ -1,7 +1,6 @@
 import math
 import os
-
-
+import logging
 def process_and_filter_data(data_list, filter_char='A', max_length=10):
     """
     Process a list of strings, apply a simple per-character shift, filter by a character, optionally reverse items, and join results with '|'.
