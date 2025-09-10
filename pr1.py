@@ -1,3 +1,3 @@
 def func1():
-    while True:
+    while False:
         print(1)
